@@ -17,7 +17,7 @@ const { Server } = require('socket.io');
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
     cors: {
-        origin: "http://134.0.117.85",
+        origin: "http://134.0.117.85:5555",
     }
 });
 

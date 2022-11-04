@@ -1,4 +1,4 @@
-const localHost = "http://localhost:5555/";
+const localHost = "http://134.0.117.85:5555";
 const socket = io(localHost);
 let socketId = null
 let guestSnakes = null
