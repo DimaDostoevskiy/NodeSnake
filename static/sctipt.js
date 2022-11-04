@@ -1,6 +1,8 @@
 const localHost = "https://localhost:3001";
 const socket = io(localHost);
 
+console.log(socket);
+
 const canvas = document.getElementById('canvas');
 const scoreText = document.getElementById('score');
 
@@ -10,6 +12,7 @@ canvas.height = window.screen.availHeight * 1.127;
 const ctx = canvas.getContext('2d');
 
 const SNAKE = [];
+const SNAKE2 = [];
 const APPLES = [];
 const TEXT = [];
 
@@ -121,6 +124,15 @@ class Snake {
 
 function init() {
   SNAKE.push(new Snake());
+  SNAKE2.push(new Snake());
+
+  for (let i = 1; i < 8; i++) {
+    const tailItem = new Snake();
+    tailItem.speed -= 0.5 * i;
+    tailItem.radius -= 0.7 * i;
+    SNAKE2.push(tailItem);
+    SNAKE2[i].target = SNAKE2[i - 1];
+  }
   for (let i = 1; i < 8; i++) {
     const tailItem = new Snake();
     tailItem.speed -= 0.5 * i;
@@ -143,6 +155,7 @@ init();
 requestAnimationFrame(function draw() {
   ctx.clearRect(0, 0, 10000, 10000);
   SNAKE.forEach(item => item.draw());
+  SNAKE2.forEach(item => item.draw());
   APPLES.forEach(item => item.draw());
   requestAnimationFrame(draw);
 })
