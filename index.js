@@ -39,7 +39,7 @@ io.on(CONNECT, (socket) => {
 
     setInterval(() => {
         socket.emit('allSnakes', snakes);
-    }, 200);
+    }, 10);
 
 
     //Разрыв соединения сокета и удаления пользователя из списка онлайн

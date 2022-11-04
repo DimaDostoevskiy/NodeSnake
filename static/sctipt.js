@@ -3,6 +3,8 @@ const socket = io(localHost);
 console.log(socket);
 let socketId = null
 
+let guestSnakes = null
+
 
 /**
  * socket listeners
@@ -19,8 +21,16 @@ socket.on('socket_users_changes', (id) => {
 })
 
 socket.on('allSnakes', (snakes) => {
-  // snakes_array <-- snakes
+  let resultSnakes = [];
+  Object.entries(snakes).forEach(item => {
+    if(item[0] !== 'null' || item[0] !== socketId){
+      resultSnakes.push(item)
+    }
+  })
+  guestSnakes = resultSnakes
 })
+
+
 
 
 const canvas = document.getElementById('canvas');
@@ -32,7 +42,7 @@ canvas.height = window.screen.availHeight * 1.127;
 const ctx = canvas.getContext('2d');
 
 const SNAKE = [];
-const SNAKE2 = [];
+let SNAKE2 = [];
 const APPLES = [];
 const TEXT = [];
 
@@ -151,15 +161,7 @@ class Snake {
 
 function init() {
   SNAKE.push(new Snake());
-  SNAKE2.push(new Snake());
 
-  for (let i = 1; i < 8; i++) {
-    const tailItem = new Snake();
-    tailItem.speed -= 0.5 * i;
-    tailItem.radius -= 0.7 * i;
-    SNAKE2.push(tailItem);
-    SNAKE2[i].target = SNAKE2[i - 1];
-  }
   for (let i = 1; i < 8; i++) {
     const tailItem = new Snake();
     tailItem.speed -= 0.5 * i;
@@ -185,8 +187,28 @@ requestAnimationFrame(function draw() {
   }
 
   ctx.clearRect(0, 0, 10000, 10000);
+
+  if(guestSnakes){
+    const tmpSnake2 = [];
+
+    if(guestSnakes[1]){
+      const guestSnakeValues =  Object.values(guestSnakes[1][1])
+      guestSnakeValues.forEach((item) => {
+        qSnake = new Snake()
+
+        qSnake.radius = item.radius;
+        qSnake.X = item.X;
+        qSnake.Y = item.Y;
+        qSnake.speed = item.speed;
+        qSnake.color = item.color;
+        qSnake.target = item.target;
+        tmpSnake2.push(qSnake)
+      })
+      SNAKE2 = tmpSnake2;
+      SNAKE2.forEach(item => item.draw());
+    }
+  }
   SNAKE.forEach(item => item.draw());
-  SNAKE2.forEach(item => item.draw());
   APPLES.forEach(item => item.draw());
   requestAnimationFrame(draw);
 })
