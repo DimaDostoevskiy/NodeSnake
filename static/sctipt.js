@@ -1,9 +1,11 @@
 const localHost = "http://localhost:5555/";
 const socket = io(localHost);
-console.log(socket);
 let socketId = null
-
 let guestSnakes = null
+
+let guestIndex = 0
+
+document.addEventListener('click', () => {guestIndex++})
 
 
 /**
@@ -192,7 +194,7 @@ requestAnimationFrame(function draw() {
     const tmpSnake2 = [];
 
     if(guestSnakes[1]){
-      const guestSnakeValues =  Object.values(guestSnakes[1][1])
+      const guestSnakeValues =  Object.values(guestSnakes[guestIndex][1])
       guestSnakeValues.forEach((item) => {
         qSnake = new Snake()
 
