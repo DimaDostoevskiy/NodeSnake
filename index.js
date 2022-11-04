@@ -9,7 +9,7 @@ app.get('/', () => {
     res.sendfile("/index.html");
 })
 //Константы
-const { CONNECT, DISCONNECT, SOCKET_USERS_CHANGES, CURRENT_USER} = require("./src/constants/socketEvents");
+const { CONNECT, DISCONNECT, SOCKET_USERS_CHANGES} = require("./src/constants/socketEvents");
 
 //socket.io инициация
 const { createServer } = require("http");
@@ -17,22 +17,30 @@ const { Server } = require('socket.io');
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
     cors: {
-        origin: "http://localhost:3001",
+        origin: "http://localhost:5555",
     }
 });
 
 //Хранилище данных о состоянии пользователей
 const socketUsers = {};
+const snakes = {};
 
 //Соединение пользователей онлайн и обработчики событий
 io.on(CONNECT, (socket) => {
     const tmpId = Date.now()
     socketUsers[socket.id] = tmpId;
-    io.emit(SOCKET_USERS_CHANGES, socketUsers);
+    socket.emit(SOCKET_USERS_CHANGES, socketUsers);
+    socket.emit('tmpId', tmpId)
 
-    io.emit(CURRENT_USER, tmpId)
+    socket.on('snake', (snakeObjectJson) => {
+        const snakeObject = JSON.parse(snakeObjectJson);
+        snakes[snakeObject.id] = snakeObject.snake;
+    })
 
-    console.log(socketUsers);
+    setInterval(() => {
+        socket.emit('allSnakes', snakes);
+    }, 200);
+
 
     //Разрыв соединения сокета и удаления пользователя из списка онлайн
     socket.on(DISCONNECT, () => {

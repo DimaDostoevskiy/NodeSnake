@@ -1,10 +1,27 @@
 const localHost = "http://localhost:5555/";
 const socket = io(localHost);
 console.log(socket);
+let socketId = null
+
+
+/**
+ * socket listeners
+ */
 
 socket.on("connection", (socket) => {
   console.log(socket.id); // x8WIv7-mJelg7on_ALbx
 });
+socket.on('tmpId', (id) => {
+  socketId = id
+})
+socket.on('socket_users_changes', (id) => {
+  console.log(id)
+})
+
+socket.on('allSnakes', (snakes) => {
+  // snakes_array <-- snakes
+})
+
 
 const canvas = document.getElementById('canvas');
 const scoreText = document.getElementById('score');
@@ -162,6 +179,11 @@ canvas.addEventListener('mousemove', (event) => {
 
 init();
 requestAnimationFrame(function draw() {
+  if(socket){
+    const snakeRequest = {snake: {...SNAKE}, id: socketId }
+    socket.emit('snake',  JSON.stringify(snakeRequest))
+  }
+
   ctx.clearRect(0, 0, 10000, 10000);
   SNAKE.forEach(item => item.draw());
   SNAKE2.forEach(item => item.draw());
