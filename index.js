@@ -9,7 +9,7 @@ app.get('/', () => {
     res.sendfile("/index.html");
 })
 //Константы
-const { CONNECT, DISCONNECT, SOCKET_USERS_CHANGES, INVITE_USER } = require("./src/constants/socketEvents");
+const { CONNECT, DISCONNECT, SOCKET_USERS_CHANGES, CURRENT_USER} = require("./src/constants/socketEvents");
 
 //socket.io инициация
 const { createServer } = require("http");
@@ -26,8 +26,13 @@ const socketUsers = {};
 
 //Соединение пользователей онлайн и обработчики событий
 io.on(CONNECT, (socket) => {
-    socketUsers[socket.id] = jwtUser;
+    const tmpId = Date.now()
+    socketUsers[socket.id] = tmpId;
     io.emit(SOCKET_USERS_CHANGES, socketUsers);
+
+    io.emit(CURRENT_USER, tmpId)
+
+    console.log(socketUsers);
 
     //Разрыв соединения сокета и удаления пользователя из списка онлайн
     socket.on(DISCONNECT, () => {
