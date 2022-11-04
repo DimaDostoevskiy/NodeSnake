@@ -2,9 +2,14 @@ const express = require('express');
 const app = express();
 const PORT = process.env.PORT || 5555;
 const cors = require('cors');
+const path = require('path')
 
+app.use(express.static(path.join(__dirname, 'static')))
+app.get('/', () => {
+    res.sendfile("/index.html");
+})
 //Константы
-const {CONNECT, DISCONNECT, SOCKET_USERS_CHANGES, INVITE_USER} = require("./src/constants/socketEvents");
+const { CONNECT, DISCONNECT, SOCKET_USERS_CHANGES, INVITE_USER } = require("./src/constants/socketEvents");
 
 //socket.io инициация
 const { createServer } = require("http");
@@ -33,6 +38,6 @@ io.on(CONNECT, (socket) => {
 
 app.use(cors());
 
-httpServer.listen(PORT,  () => {
+httpServer.listen(PORT, () => {
     console.log(`Blast-off on http://localhost:${PORT} pid:${process.pid}`);
 });

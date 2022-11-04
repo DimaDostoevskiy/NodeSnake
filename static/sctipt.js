@@ -1,24 +1,18 @@
 const localHost = "https://localhost:3001";
 const socket = io(localHost);
-console.log(socket);
-
-
-
-
-
 
 const canvas = document.getElementById('canvas');
 const scoreText = document.getElementById('score');
 
+let score = 1;
 canvas.width = window.screen.availWidth * 1.25;
 canvas.height = window.screen.availHeight * 1.127;
-console.log(canvas.width);
 const ctx = canvas.getContext('2d');
 
 const SNAKE = [];
 const APPLES = [];
+const TEXT = [];
 
-let score = 1;
 
 const getRndInt = (min, max) =>
   Math.floor(Math.random() * (max - min) + min);
@@ -30,6 +24,7 @@ const getDistanse = (obj1, obj2) => {
 }
 
 const showText = (frame, text) => {
+  TEXT.push()
   let i = 0;
   if (i < frame) {
     ctx.font = "30px Arial";
