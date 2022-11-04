@@ -1,7 +1,10 @@
-const localHost = "https://localhost:3001";
+const localHost = "http://localhost:5555/";
 const socket = io(localHost);
-
 console.log(socket);
+
+socket.on("connection", (socket) => {
+  console.log(socket.id); // x8WIv7-mJelg7on_ALbx
+});
 
 const canvas = document.getElementById('canvas');
 const scoreText = document.getElementById('score');
@@ -30,15 +33,24 @@ const showText = (frame, text) => {
   TEXT.push()
   let i = 0;
   if (i < frame) {
-    ctx.font = "30px Arial";
-    ctx.fillText(text);
     i++;
   } else {
-
+    
   }
 }
 
-//#region Apple
+//#region Classes
+
+class Text{
+  constructor(text, frames){
+    this.text = text;
+    this.frames = frames;
+  }
+  drow(){
+    ctx.font = "30px Arial";
+    ctx.fillText(this.text);
+  }
+}
 
 class Apple {
   constructor() {
@@ -84,9 +96,6 @@ class Apple {
   }
 }
 
-//#endregion
-
-//#region Snake
 
 class Snake {
   constructor() {
@@ -120,6 +129,7 @@ class Snake {
     }
   }
 }
+
 //#endregion
 
 function init() {
@@ -149,7 +159,6 @@ canvas.addEventListener('mousemove', (event) => {
   SNAKE[0].target.X = event.clientX;
   SNAKE[0].target.Y = event.clientY;
 })
-
 
 init();
 requestAnimationFrame(function draw() {
