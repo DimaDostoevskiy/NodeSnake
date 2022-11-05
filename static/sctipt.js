@@ -98,7 +98,7 @@ class Snake {
     ctx.stroke();
 
     if (getDistanse(this, this.target) > this.radius * 2) {
-      this.speed = getDistanse(this, this.target) / 10;
+      this.speed = (this.speed < 5) ? getDistanse(this, this.target) / 10 : 5;
       const dx = this.X - this.target.X;
       const dy = this.Y - this.target.Y;
       let theta = Math.atan2(dy, dx);
@@ -127,18 +127,29 @@ function init() {
   }
 }
 
+const cursor = {
+  x: 0, y: 0, draw() {
+    ctx.beginPath();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle ='white' ;
+    ctx.arc(this.x, this.y, 2, 0, Math.PI * 2, true);
+    ctx.stroke();
+  }
+}
+
 canvas.addEventListener('mousemove', (event) => {
-  SNAKE[0].target.X = event.clientX;
-  SNAKE[0].target.Y = event.clientY;
+  cursor.x = event.clientX;
+  cursor.y = event.clientY;
 })
 
 setInterval(() => {
   let snakes = []
-  ctx.clearRect(0, 0, 10000, 10000);
 
+  SNAKE[0].target.X = cursor.x;
+  SNAKE[0].target.Y = cursor.y;
 
-  if(socket.connected){
-    socket.emit('snake',  {SNAKE, id: socket.id})
+  if (socket.connected) {
+    socket.emit('snake', { SNAKE, id: socket.id })
   }
 
   if(guestSnakes && guestSnakes.length){
@@ -171,7 +182,9 @@ setInterval(() => {
 
 init();
 requestAnimationFrame(function draw() {
+  ctx.clearRect(0, 0, 10000, 10000);
 
+  cursor.draw();
   SNAKE.forEach(item => item.draw());
   APPLES.forEach(item => item.draw());
   requestAnimationFrame(draw);
