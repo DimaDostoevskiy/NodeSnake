@@ -1,5 +1,5 @@
-// const localHost = "ws://134.0.117.85:5555";
-const localHost = "ws://localhost:5555/";
+const localHost = "ws://134.0.117.85:5555";
+// const localHost = "ws://localhost:5555/";
 const socket = io(localHost);
 let guestSnakes = null
 
