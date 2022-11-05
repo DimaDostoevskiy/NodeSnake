@@ -42,14 +42,14 @@ const snakes = {};
 
 setInterval(() => {
     io.emit('allSnakes', snakes);
-}, 60);
+}, 10);
 
 //Соединение пользователей онлайн и обработчики событий
 io.on('connection', (socket) => {
 
     // Шина snake
     socket.on('snake', (snakeObject) => {
-        snakes[snakeObject.id] = snakeObject.SNAKE;
+        snakes[snakeObject.id] = snakeObject.snake;
     })
 
     //Разрыв соединения сокета и удаления пользователя из списка онлайн

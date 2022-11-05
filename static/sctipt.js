@@ -124,7 +124,7 @@ function init() {
 
   for (let i = 1; i < 8; i++) {
     const tailItem = new Snake();
-    tailItem.speed -= 0.5 * i;
+    tailItem.speed -= 0.1 * i;
     tailItem.radius -= 0.7 * i;
     SNAKE.push(tailItem);
     SNAKE[i].target = SNAKE[i - 1];
@@ -151,7 +151,11 @@ setInterval(() => {
   SNAKE[0].target.Y = cursor.y;
 
   if (socket.connected) {
-    socket.emit('snake', { SNAKE, id: socket.id })
+    const snake = SNAKE.map(snakePoint => {
+      return {x: snakePoint.X, y: snakePoint.Y}
+    })
+
+    socket.emit('snake', {snake, id: socket.id})
   }
 
   if (guestSnakes && guestSnakes.length) {
@@ -159,12 +163,8 @@ setInterval(() => {
       let tmpSnakes = []
       guestSnake.forEach((item) => {
         let gSnake = new Snake()
-        gSnake.radius = item.radius;
-        gSnake.X = item.X;
-        gSnake.Y = item.Y;
-        gSnake.speed = item.speed;
-        gSnake.color = item.color;
-        gSnake.target = item.target;
+        gSnake.X = item.x;
+        gSnake.Y = item.y;
         tmpSnakes.push(gSnake)
       })
       snakes.push(tmpSnakes);
@@ -178,7 +178,7 @@ setInterval(() => {
       })
     }
   }
-}, 60)
+}, 10)
 
 init();
 requestAnimationFrame(function draw() {
