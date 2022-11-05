@@ -178,7 +178,7 @@ setInterval(() => {
       })
     }
   }
-}, 10)
+}, 60)
 
 init();
 requestAnimationFrame(function draw() {
