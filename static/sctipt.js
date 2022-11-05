@@ -1,32 +1,16 @@
-const localHost = "http://134.0.117.85:5555";
+const localHost = "ws://134.0.117.85:5555";
 const socket = io(localHost);
-let socketId = null
 let guestSnakes = null
-
-let guestIndex = 0
-
-document.addEventListener('click', () => {guestIndex++})
 
 
 /**
  * socket listeners
  */
-
-socket.on("connection", (socket) => {
-  console.log(socket.id); // x8WIv7-mJelg7on_ALbx
-});
-socket.on('tmpId', (id) => {
-  socketId = id
-})
-socket.on('socket_users_changes', (id) => {
-  console.log(id)
-})
-
 socket.on('allSnakes', (snakes) => {
   let resultSnakes = [];
   Object.entries(snakes).forEach(item => {
-    if(item[0] !== 'null' || item[0] !== socketId){
-      resultSnakes.push(item)
+    if( item[0] !== socket.id){
+      resultSnakes.push(item[1])
     }
   })
   guestSnakes = resultSnakes
@@ -36,18 +20,12 @@ socket.on('allSnakes', (snakes) => {
 
 
 const canvas = document.getElementById('canvas');
-const scoreText = document.getElementById('score');
-
-let score = 1;
 canvas.width = window.screen.availWidth * 1.25;
 canvas.height = window.screen.availHeight * 1.127;
 const ctx = canvas.getContext('2d');
 
 const SNAKE = [];
-let SNAKE2 = [];
 const APPLES = [];
-const TEXT = [];
-
 
 const getRndInt = (min, max) =>
   Math.floor(Math.random() * (max - min) + min);
@@ -58,28 +36,7 @@ const getDistanse = (obj1, obj2) => {
   return Math.sqrt(dx * dx + dy * dy);
 }
 
-const showText = (frame, text) => {
-  TEXT.push()
-  let i = 0;
-  if (i < frame) {
-    i++;
-  } else {
-    
-  }
-}
-
 //#region Classes
-
-class Text{
-  constructor(text, frames){
-    this.text = text;
-    this.frames = frames;
-  }
-  drow(){
-    ctx.font = "30px Arial";
-    ctx.fillText(this.text);
-  }
-}
 
 class Apple {
   constructor() {
@@ -101,12 +58,6 @@ class Apple {
       newSnake.radius = this.radius;
       newSnake.target = SNAKE[SNAKE.length - 1];
       SNAKE.push(newSnake);
-      score++;
-    }
-    
-    for (let i = 1; i < SNAKE.length; i++) {
-      if (getDistanse(this, SNAKE[i]) < SNAKE[i].radius + this.radius)
-        score--;
     }
 
     if (this.X - this.radius <= 0) this.dx = -this.dx;
@@ -181,35 +132,46 @@ canvas.addEventListener('mousemove', (event) => {
   SNAKE[0].target.Y = event.clientY;
 })
 
-init();
-requestAnimationFrame(function draw() {
-  if(socket){
-    const snakeRequest = {snake: {...SNAKE}, id: socketId }
-    socket.emit('snake',  JSON.stringify(snakeRequest))
-  }
-
+setInterval(() => {
+  let snakes = []
   ctx.clearRect(0, 0, 10000, 10000);
 
-  if(guestSnakes){
-    const tmpSnake2 = [];
 
-    if(guestSnakes[1]){
-      const guestSnakeValues =  Object.values(guestSnakes[guestIndex][1])
-      guestSnakeValues.forEach((item) => {
-        qSnake = new Snake()
+  if(socket.connected){
+    socket.emit('snake',  {SNAKE, id: socket.id})
+  }
 
-        qSnake.radius = item.radius;
-        qSnake.X = item.X;
-        qSnake.Y = item.Y;
-        qSnake.speed = item.speed;
-        qSnake.color = item.color;
-        qSnake.target = item.target;
-        tmpSnake2.push(qSnake)
+  if(guestSnakes && guestSnakes.length){
+    guestSnakes.forEach((guestSnake) => {
+      let tmpSnakes = []
+      guestSnake.forEach((item) => {
+        let gSnake = new Snake()
+        gSnake.radius = item.radius;
+        gSnake.X = item.X;
+        gSnake.Y = item.Y;
+        gSnake.speed = item.speed;
+        gSnake.color = item.color;
+        gSnake.target = item.target;
+        tmpSnakes.push(gSnake)
       })
-      SNAKE2 = tmpSnake2;
-      SNAKE2.forEach(item => item.draw());
+      snakes.push(tmpSnakes);
+    })
+
+    if(snakes && snakes.length){
+      snakes.forEach((guestSnake) => {
+        guestSnake.forEach(item => {
+          item.draw()
+        });
+
+      })
     }
   }
+}, 60)
+
+
+init();
+requestAnimationFrame(function draw() {
+
   SNAKE.forEach(item => item.draw());
   APPLES.forEach(item => item.draw());
   requestAnimationFrame(draw);
