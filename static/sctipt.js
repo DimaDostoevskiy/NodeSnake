@@ -1,23 +1,21 @@
-const localHost = "ws://134.0.117.85:5555";
+// const localHost = "ws://134.0.117.85:5555";
+const localHost = "ws://localhost:5555/";
 const socket = io(localHost);
 let guestSnakes = null
-
 
 /**
  * socket listeners
  */
+
 socket.on('allSnakes', (snakes) => {
   let resultSnakes = [];
   Object.entries(snakes).forEach(item => {
-    if( item[0] !== socket.id){
+    if (item[0] !== socket.id) {
       resultSnakes.push(item[1])
     }
   })
   guestSnakes = resultSnakes
 })
-
-
-
 
 const canvas = document.getElementById('canvas');
 canvas.width = window.screen.availWidth * 1.25;
@@ -76,13 +74,12 @@ class Apple {
   }
 }
 
-
 class Snake {
   constructor() {
     this.radius = 7;
     this.X = getRndInt(10, 100);
     this.Y = getRndInt(10, 100);
-    this.speed = 5;
+    this.speed = 1;
     this.color = `rgb(256, 28, 28`;
     this.target = {
       X: 0,
@@ -97,8 +94,8 @@ class Snake {
     ctx.arc(this.X, this.Y, this.radius, 0, Math.PI * 2, true);
     ctx.stroke();
 
-    if (getDistanse(this, this.target) > this.radius * 2) {
-      this.speed = (this.speed < 5) ? getDistanse(this, this.target) / 10 : 5;
+    if (getDistanse(this, this.target) > this.radius) {
+      this.speed = (this.speed < 5) ? getDistanse(this, this.target) / 10 : 2;
       const dx = this.X - this.target.X;
       const dy = this.Y - this.target.Y;
       let theta = Math.atan2(dy, dx);
@@ -107,6 +104,16 @@ class Snake {
       this.X -= vX;
       this.Y -= vY;
     }
+  }
+}
+
+const cursor = {
+  x: 0, y: 0, draw() {
+    ctx.beginPath();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = 'white';
+    ctx.arc(this.x, this.y, 2, 0, Math.PI * 2, true);
+    ctx.stroke();
   }
 }
 
@@ -127,22 +134,17 @@ function init() {
   }
 }
 
-const cursor = {
-  x: 0, y: 0, draw() {
-    ctx.beginPath();
-    ctx.lineWidth = 2;
-    ctx.strokeStyle ='white' ;
-    ctx.arc(this.x, this.y, 2, 0, Math.PI * 2, true);
-    ctx.stroke();
-  }
-}
-
 canvas.addEventListener('mousemove', (event) => {
   cursor.x = event.clientX;
   cursor.y = event.clientY;
 })
 
 setInterval(() => {
+  ctx.clearRect(0, 0, 10000, 10000);
+  cursor.draw();
+  SNAKE.forEach(item => item.draw());
+  APPLES.forEach(item => item.draw());
+
   let snakes = []
 
   SNAKE[0].target.X = cursor.x;
@@ -152,7 +154,7 @@ setInterval(() => {
     socket.emit('snake', { SNAKE, id: socket.id })
   }
 
-  if(guestSnakes && guestSnakes.length){
+  if (guestSnakes && guestSnakes.length) {
     guestSnakes.forEach((guestSnake) => {
       let tmpSnakes = []
       guestSnake.forEach((item) => {
@@ -168,25 +170,18 @@ setInterval(() => {
       snakes.push(tmpSnakes);
     })
 
-    if(snakes && snakes.length){
+    if (snakes && snakes.length) {
       snakes.forEach((guestSnake) => {
         guestSnake.forEach(item => {
           item.draw()
         });
-
       })
     }
   }
-}, 60)
-
+}, 10)
 
 init();
 requestAnimationFrame(function draw() {
-  ctx.clearRect(0, 0, 10000, 10000);
 
-  cursor.draw();
-  SNAKE.forEach(item => item.draw());
-  APPLES.forEach(item => item.draw());
   requestAnimationFrame(draw);
 })
-

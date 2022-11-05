@@ -3,7 +3,8 @@
 /********* SERVER NODEJS *********/
 /*********************************/
 /*********************************/
-
+// const localHost = "ws://134.0.117.85:5555";
+const localHost = "ws://localhost:5555/";
 
 const express = require('express');
 const app = express();
@@ -11,22 +12,23 @@ const PORT = process.env.PORT || 5555;
 const cors = require('cors');
 const path = require('path')
 
-// Статичные файлы из static
+// Staic files from "./static" page
 app.use(express.static(path.join(__dirname, 'static')))
 
-// Главная страница
+// Home page
 app.get('/', () => {
     res.sendfile("/index.html");
 })
 
-//socket.io инициация
+//socket.io init
 const { createServer } = require("http");
 const { Server } = require('socket.io');
 
 const httpServer = createServer(app);
+
 const io = new Server(httpServer, {
     cors: {
-        origin: "http://134.0.117.85:5555",
+        origin: localHost,
     }
 });
 
@@ -37,7 +39,6 @@ const io = new Server(httpServer, {
 
 //Хранилище данных о состоянии змей
 const snakes = {};
-
 
 setInterval(() => {
     io.emit('allSnakes', snakes);
@@ -57,12 +58,9 @@ io.on('connection', (socket) => {
     });
 });
 
-
-
-
 /** Слушает запросы по порту ${PORT}
  ************************/
 app.use(cors());
 httpServer.listen(PORT, () => {
-    console.log(`Blast-off on http://localhost:${PORT} pid:${process.pid}`);
+    console.log(`Blast-off on ${localHost}:${PORT} pid:${process.pid}`);
 });
