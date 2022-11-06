@@ -3,8 +3,8 @@
 /********* SERVER NODEJS *********/
 /*********************************/
 /*********************************/
-const localHost = "ws://134.0.117.85:5555";
-// const localHost = "ws://localhost:5555/";
+// const localHost = "ws://134.0.117.85:5555";
+const localHost = "ws://localhost:5555/";
 
 const express = require('express');
 const app = express();

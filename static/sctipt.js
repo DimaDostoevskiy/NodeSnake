@@ -1,11 +1,20 @@
-const localHost = "ws://134.0.117.85:5555";
-// const localHost = "ws://localhost:5555/";
-const socket = io(localHost);
+
+// set canvas
+const canvas = document.getElementById('canvas');
+canvas.width = window.screen.availWidth * 1.25;
+canvas.height = window.screen.availHeight * 1.127;
+const ctx = canvas.getContext('2d');
+
+// constants
+const SNAKE = [];   // client snake array
+const APPLES = [];  // aplle
 let guestSnakes = null
 
-/**
- * socket listeners
- */
+
+// set socet
+// const localHost = "ws://134.0.117.85:5555"; //for prod
+const localHost = "ws://localhost:5555/";
+const socket = io(localHost);
 
 socket.on('allSnakes', (snakes) => {
   let resultSnakes = [];
@@ -16,14 +25,6 @@ socket.on('allSnakes', (snakes) => {
   })
   guestSnakes = resultSnakes
 })
-
-const canvas = document.getElementById('canvas');
-canvas.width = window.screen.availWidth * 1.25;
-canvas.height = window.screen.availHeight * 1.127;
-const ctx = canvas.getContext('2d');
-
-const SNAKE = [];
-const APPLES = [];
 
 const getRndInt = (min, max) =>
   Math.floor(Math.random() * (max - min) + min);
@@ -121,7 +122,6 @@ const cursor = {
 
 function init() {
   SNAKE.push(new Snake());
-
   for (let i = 1; i < 8; i++) {
     const tailItem = new Snake();
     tailItem.speed -= 0.1 * i;
@@ -141,8 +141,10 @@ canvas.addEventListener('mousemove', (event) => {
 
 setInterval(() => {
   ctx.clearRect(0, 0, 10000, 10000);
+
   cursor.draw();
   SNAKE.forEach(item => item.draw());
+
   APPLES.forEach(item => item.draw());
 
   let snakes = []
@@ -152,10 +154,9 @@ setInterval(() => {
 
   if (socket.connected) {
     const snake = SNAKE.map(snakePoint => {
-      return {x: snakePoint.X, y: snakePoint.Y}
+      return { x: snakePoint.X, y: snakePoint.Y }
     })
-
-    socket.emit('snake', {snake, id: socket.id})
+    socket.emit('snake', { snake, id: socket.id })
   }
 
   if (guestSnakes && guestSnakes.length) {
@@ -182,6 +183,7 @@ setInterval(() => {
 
 init();
 requestAnimationFrame(function draw() {
-
+  // cursor.draw();
+  // SNAKE.forEach(item => item.draw());
   requestAnimationFrame(draw);
 })
