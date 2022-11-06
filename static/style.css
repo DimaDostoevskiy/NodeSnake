@@ -1,18 +1,10 @@
-body {
-    position: relative;
+html, body {
     margin: 0;
     padding: 0;
+    height: 100%;
     overflow: hidden;
-    background-color: rgb(42, 42, 42);
 }
 #canvas{
     background-color: rgb(42, 42, 42);
     cursor: none;
-}
-.score{
-    position: absolute;
-    top: 5px;
-    left: 2222px;
-    background-color: rgba(10, 108, 108, 1);
-    z-index: 2;
 }

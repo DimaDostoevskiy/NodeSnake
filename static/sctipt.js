@@ -1,21 +1,15 @@
-
+// import  Apple  from "../Classes/AppleClass";
 
 // set canvas
 const canvas = document.getElementById('canvas');
-canvas.width = window.screen.availWidth * 1.25;
-canvas.height = window.screen.availHeight * 1.127;
+canvas.width = document.body.clientWidth;
+canvas.height = document.body.clientHeight;
 const ctx = canvas.getContext('2d');
-
-// constants
-const APPLES = [];      // aplles
-let guestSnakes = null // guests snakes
-
 
 // set socet
 // const localHost = "ws://134.0.117.85:5555";     //for prod
 const localHost = "ws://localhost:5555/";
 const socket = io(localHost);
-
 
 socket.on('allSnakes', (snakes) => {
   let resultSnakes = [];
@@ -144,7 +138,7 @@ class Snake {
 
       ctx.beginPath();
       ctx.lineWidth = this.tail[i].radius * 2;
-      ctx.strokeStyle = this.tail[i].color;
+      ctx.strokeStyle = this.color;
       ctx.arc(this.tail[i].X, this.tail[i].Y, this.tail[i].radius, 0, Math.PI * 2, true);
       ctx.stroke();
 
@@ -165,48 +159,67 @@ class Snake {
 
 const snake1 = new Snake();
 const snake2 = new Snake();
+snake2.color = 'white';
+
+const apples = [];
+for (let i = 0; i < 10; i++) {
+  apples.push(new Apple())
+}
+
+
+let guestSnakes = null // guests snakes
 
 setInterval(() => {
-  // clear canvas
-  ctx.clearRect(0, 0, 10000, 10000);
-  // draw apples
-  if (APPLES.length < 20) APPLES.push(new Apple())
-  APPLES.forEach(item => item.draw())
+
+
   // array for guessts snakes
-  let snakes = []
+  // let snakes = []
 
-  if (socket.connected) {
-    const snake = snake1.tail.map(snakePoint => {
-      return { x: snakePoint.X, y: snakePoint.Y }
-    })
-    socket.emit('snake', { snake, id: socket.id })
-  }
+  // if (socket.connected) {
+  //   const snake = snake1.tail.map(snakePoint => {
+  //     return { x: snakePoint.X, y: snakePoint.Y }
+  //   })
+  //   socket.emit('snake', { snake, id: socket.id })
+  // }
 
-  if (guestSnakes && guestSnakes.length) {
-    guestSnakes.forEach((guestSnake) => {
-      let tmpSnakes = []
-      guestSnake.forEach((item) => {
-        let gSnake = new Snake()
-        gSnake.X = item.x;
-        gSnake.Y = item.y;
-        tmpSnakes.push(gSnake)
-      })
-      snakes.push(tmpSnakes);
-    })
+  // if (guestSnakes && guestSnakes.length) {
+  //   guestSnakes.forEach((guestSnake) => {
+  //     let tmpSnakes = []
+  //     guestSnake.forEach((item) => {
+  //       let gSnake = new Snake()
+  //       gSnake.X = item.x;
+  //       gSnake.Y = item.y;
+  //       tmpSnakes.push(gSnake)
+  //     })
+  //     snakes.push(tmpSnakes);
+  //   })
 
-    if (snakes && snakes.length) {
-      snakes.forEach((guestSnake) => {
-        guestSnake.forEach(item => {
-          item.draw()
-        });
-      })
-    }
-  }
+  //   if (snakes && snakes.length) {
+  //     snakes.forEach((guestSnake) => {
+  //       guestSnake.forEach(item => {
+  //         item.draw()
+  //       });
+  //     })
+  //   }
+  // }
 }, 10)
 
+setInterval(() => {
+  snake2.tail[0].target = { X: getRndInt(10, canvas.width), Y: getRndInt(10, canvas.height) }
+}, 1000)
+
 requestAnimationFrame(function draw() {
-  if (snake1.tail.length > 0) snake1.draw();
+  // clear canvas
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  // draw cursor
   cursor.draw();
+  // draw mySnake
+  snake1.draw();
+  // draw guests snakes
+  snake2.draw();
+  // draw apples
+  apples.forEach(i => i.draw());
+  // recursive call
   requestAnimationFrame(draw);
 })
 

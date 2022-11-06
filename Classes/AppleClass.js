@@ -1,4 +1,3 @@
-
 export class Apple {
     constructor(color = `rgb(42, 256, 42`) {
         this.radius = getRndInt(20, 60) / 10;
