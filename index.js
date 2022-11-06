@@ -1,4 +1,10 @@
-// const localHost = "ws://134.0.117.85:5555";
+/*******************************************/
+/*******************************************/
+/*************** SERVER NODEJS *************/
+/*******************************************/
+/*******************************************/
+
+// const localHost = "ws://134.0.117.85:5555";     //for prod
 const localHost = "ws://localhost:5555/";
 
 const express = require('express');
@@ -27,8 +33,6 @@ const io = new Server(httpServer, {
     }
 });
 
-
-
 /** Клиентский код
  *******************/
 
@@ -38,7 +42,6 @@ let socketIO = null;
 setInterval(() => {
     io.emit('allSnakes', snakes);
 }, 10);
-
 
 //Соединение пользователей онлайн и обработчики событий
 io.on('connection', (socket) => {
@@ -59,8 +62,3 @@ app.use(cors());
 httpServer.listen(PORT, () => {
     console.log(`Blast-off on ${localHost} pid:${process.pid}`);
 });
-
-// for dev
-// setInterval(() => {
-//     console.log(socketIO.id);
-// }, 5000);

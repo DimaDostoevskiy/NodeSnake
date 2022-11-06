@@ -1,5 +1,3 @@
-// import  Apple  from "../Classes/AppleClass";
-
 // set canvas
 const canvas = document.getElementById('canvas');
 canvas.width = document.body.clientWidth;
@@ -30,51 +28,106 @@ const getDistanse = (obj1, obj2) => {
   return Math.sqrt(dx * dx + dy * dy);
 }
 
+// cursor
 const cursor = {
-  X: 0, Y: 0, draw() {
+  X: 0,
+  Y: 0,
+  radius: 2,
+  color: 'SlateBlue',
+  draw() {
     ctx.beginPath();
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = 'white';
+    ctx.lineWidth = this.radius;
+    ctx.strokeStyle = this.color;
     ctx.arc(this.X, this.Y, 2, 0, Math.PI * 2, true);
     ctx.stroke();
   }
 }
 
-class Tail {
+class SnakePoint {
 
   constructor() {
     this.X = getRndInt(10, canvas.width);
     this.Y = getRndInt(10, canvas.height);
-
-    this.speed = 5;
-    this.radius = 5;
-    this.color = 'red';
-
-    this.target = {
-      X: 0,
-      Y: 0,
-    };
-  }
-}
-
-class Apple {
-
-  constructor(color = `rgb(42, 256, 42`) {
-    this.radius = getRndInt(20, 60) / 10;
-    this.X = getRndInt(10, canvas.width);
-    this.Y = getRndInt(10, 20);
-    this.color = color;
-    this.dx = getRndInt(-20, 20) / 10;
-    this.dy = getRndInt(-20, 20) / 10;
+    this.radius = 6;
+    this.speed = 8;
+    this.color = `rgba(255, 89, 161, 0.9)`;
+    this.target = {};
   }
 
   draw() {
+    let indexFromArray = mySnake.indexOf(this);
+
+    // draw this
     ctx.beginPath();
     ctx.lineWidth = this.radius * 2;
     ctx.strokeStyle = this.color;
     ctx.arc(this.X, this.Y, this.radius, 0, Math.PI * 2, true);
     ctx.stroke();
 
+    // calculate collision with this target
+    if (getDistanse(this, this.target) < this.radius * 4) return;
+
+    // calculate speed
+    if (indexFromArray) {
+      this.speed = this.target.speed * 0.97;
+      if (this.speed < 2) this.speed = 2;
+      if (this.speed > 30) this.speed = 30;
+    } else {
+      this.speed = getDistanse(this, this.target) / 70;
+      if (this.speed > 20) this.speed = 20;
+    }
+
+    // calculate velocity
+    const dx = this.X - this.target.X;
+    const dy = this.Y - this.target.Y;
+    let theta = Math.atan2(dy, dx);
+    let vX = Math.cos(theta) * this.speed;
+    let vY = Math.sin(theta) * this.speed;
+    this.X -= vX;
+    this.Y -= vY;
+
+    // calculate collision
+    apples.forEach(item => {
+      if (getDistanse(this, item) < (this.radius + item.radius)) {
+        // if !head create new apple
+        if (indexFromArray) {
+          for (let i = 0; i < mySnake.length - indexFromArray + 5; i++) {
+            const newApple = new Apple();
+            newApple.X = this.X;
+            newApple.Y = this.Y;
+            apples.push(newApple)
+          }
+          mySnake.splice(indexFromArray, mySnake.length - indexFromArray)
+          // if head add new snakePoint to tail
+        } else {
+          const newSnakePoint = new SnakePoint();
+
+          newSnakePoint.X = mySnake[mySnake.length - 1].X;
+          newSnakePoint.Y = mySnake[mySnake.length - 1].Y;
+
+          newSnakePoint.radius = item.radius;
+          newSnakePoint.target = mySnake[mySnake.length - 1];
+
+          mySnake.push(newSnakePoint)
+          apples.splice(apples.indexOf(item), 1)
+        }
+      }
+    })
+  }
+}
+
+class Apple {
+
+  constructor() {
+    this.radius = getRndInt(2, 6);
+    this.X = getRndInt(10, canvas.width);
+    this.Y = getRndInt(10, canvas.height);
+    this.color = `rgb(42, 256, 42`;
+    this.dx = getRndInt(-2, 2);
+    this.dy = getRndInt(-2, 2);
+  }
+
+  draw() {
     if (this.X - this.radius <= 0) this.dx = -this.dx;
     if (this.Y - this.radius <= 0) this.dy = -this.dy;
     if (this.X + this.radius > canvas.width) this.dx = -this.dx;
@@ -82,148 +135,80 @@ class Apple {
 
     this.X += this.dx;
     this.Y += this.dy;
+
+    ctx.beginPath();
+    ctx.lineWidth = this.radius * 2;
+    ctx.strokeStyle = this.color;
+    ctx.arc(this.X, this.Y, this.radius, 0, Math.PI * 2, true);
+    ctx.stroke();
   }
 }
 
-class Snake {
-
-  constructor() {
-    this.color = 'red';
-    this.init();
-  }
-
-  init() {
-    this.tail = [];
-    for (let i = 0; i < 8; i++) {
-      this.tail.push(new Tail())
-      if (i === 0) {
-        this.tail[i].target = cursor;
-        continue;
-      }
-      this.tail[i].target = this.tail[i - 1];
-      this.tail[i].radius = this.tail[i - 1].radius * 0.9;
-      this.tail[i].speed = this.tail[i - 1].speed * 0.95;
-    }
-  }
-
-  draw() {
-    // APPLES.forEach(item => {
-    //   if (getDistanse(this.tail[i], item) < this.tail[i].radius + item.radius) {
-    //       if (i < 1) {
-    //         const newTail = new Tail();
-    //         newTail.X = this.tail[this.tail.length - 1].X;
-    //         newTail.Y = this.tail[this.tail.length - 1].Y;
-    //         newTail.radius = item.radius;
-    //         newTail.color = this.color;
-    //         newTail.target = this.tail[this.tail.length - 1];
-
-    //         APPLES.splice(APPLES.indexOf(item), 1);
-    //         this.tail.push(newTail);
-    //       } else {
-    //         const newApple = new Apple();
-    //         newApple.X = this.tail[i].X;
-    //         newApple.Y = this.tail[i].Y;
-    //         newApple.radius = this.tail[i].radius;
-
-    //         APPLES.push(newApple);
-    //         this.tail.splice(this.tail.indexOf(this.tail[i]), 1);
-    //         for (let i = 1; i < this.tail.length; i++) {
-    //           this.tail[i].target = this.tail[i - 1];
-    //         }
-    //       }
-    //     }
-    // })
-
-    for (let i = 0; i < this.tail.length; i++) {
-
-      ctx.beginPath();
-      ctx.lineWidth = this.tail[i].radius * 2;
-      ctx.strokeStyle = this.color;
-      ctx.arc(this.tail[i].X, this.tail[i].Y, this.tail[i].radius, 0, Math.PI * 2, true);
-      ctx.stroke();
-
-      if (getDistanse(this.tail[i], this.tail[i].target) < this.tail[i].radius * 6) continue;
-      snake1.tail[0].speed = getDistanse(snake1.tail[0], cursor) / 80;
-      if (i > 0) this.tail[i].speed = this.tail[i - 1].speed;
-
-      const dx = this.tail[i].X - this.tail[i].target.X;
-      const dy = this.tail[i].Y - this.tail[i].target.Y;
-      let theta = Math.atan2(dy, dx);
-      let vX = Math.cos(theta) * this.tail[i].speed;
-      let vY = Math.sin(theta) * this.tail[i].speed;
-      this.tail[i].X -= vX;
-      this.tail[i].Y -= vY;
-    }
-  }
-}
-
-const snake1 = new Snake();
-const snake2 = new Snake();
-snake2.color = 'white';
-
+const mySnake = [];
 const apples = [];
-for (let i = 0; i < 10; i++) {
-  apples.push(new Apple())
+// init my snake
+const init = () => {
+  mySnake.push(new SnakePoint())
+  mySnake[0].target = cursor;
+
+  for (let i = 1; i < 8; i++) {
+    const newSnakePoint = new SnakePoint();
+    newSnakePoint.radius = mySnake[i - 1].radius * 0.9;
+    newSnakePoint.target = mySnake[i - 1];
+    mySnake.push(newSnakePoint)
+  }
+  for (let i = 1; i < 32; i++) {
+    apples.push(new Apple())
+  }
 }
 
+init();
 
-let guestSnakes = null // guests snakes
-
-setInterval(() => {
-
-
-  // array for guessts snakes
-  // let snakes = []
-
-  // if (socket.connected) {
-  //   const snake = snake1.tail.map(snakePoint => {
-  //     return { x: snakePoint.X, y: snakePoint.Y }
-  //   })
-  //   socket.emit('snake', { snake, id: socket.id })
-  // }
-
-  // if (guestSnakes && guestSnakes.length) {
-  //   guestSnakes.forEach((guestSnake) => {
-  //     let tmpSnakes = []
-  //     guestSnake.forEach((item) => {
-  //       let gSnake = new Snake()
-  //       gSnake.X = item.x;
-  //       gSnake.Y = item.y;
-  //       tmpSnakes.push(gSnake)
-  //     })
-  //     snakes.push(tmpSnakes);
-  //   })
-
-  //   if (snakes && snakes.length) {
-  //     snakes.forEach((guestSnake) => {
-  //       guestSnake.forEach(item => {
-  //         item.draw()
-  //       });
-  //     })
-  //   }
-  // }
-}, 10)
-
-setInterval(() => {
-  snake2.tail[0].target = { X: getRndInt(10, canvas.width), Y: getRndInt(10, canvas.height) }
-}, 1000)
-
+// animate
 requestAnimationFrame(function draw() {
   // clear canvas
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   // draw cursor
   cursor.draw();
   // draw mySnake
-  snake1.draw();
-  // draw guests snakes
-  snake2.draw();
+  mySnake.forEach(i => i.draw())
   // draw apples
-  apples.forEach(i => i.draw());
-  // recursive call
+  apples.forEach(i => i.draw())
+  // animate
   requestAnimationFrame(draw);
 })
 
+// update mySnake target
 canvas.addEventListener('mousemove', (event) => {
   cursor.X = event.clientX;
   cursor.Y = event.clientY;
 })
+
+// if (socket.connected) {
+//   const snake = snake1.tail.map(snakePoint => {
+//     return { x: snakePoint.X, y: snakePoint.Y }
+//   })
+//   socket.emit('snake', { snake, id: socket.id })
+// }
+
+// if (guestSnakes && guestSnakes.length) {
+//   guestSnakes.forEach((guestSnake) => {
+//     let tmpSnakes = []
+//     guestSnake.forEach((item) => {
+//       let gSnake = new Snake()
+//       gSnake.X = item.x;
+//       gSnake.Y = item.y;
+//       tmpSnakes.push(gSnake)
+//     })
+//     snakes.push(tmpSnakes);
+//   })
+
+//   if (snakes && snakes.length) {
+//     snakes.forEach((guestSnake) => {
+//       guestSnake.forEach(item => {
+//         item.draw()
+//       });
+//     })
+//   }
+// }
+// }, 10)
