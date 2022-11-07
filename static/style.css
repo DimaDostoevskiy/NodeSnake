@@ -54,11 +54,11 @@ body{
 #chat_messages p{
     margin: 0;
     padding: 5px;
-    text-align: right;
+    text-align: left;
 }
 
 #chat_messages p.my_message{
-    text-align: left;
+    text-align: right;
 }
 
 #chat_form{
