@@ -2,12 +2,15 @@ const chatApp = document.getElementById('chat_app');
 const chatMessages = document.getElementById('chat_messages');
 const chatForm = document.getElementById('chat_form');
 const chatInput = document.getElementById('chat_input');
+const audio = new Audio('/msg.mp3');
 
 
 socket.on('new_message', (msgObj) => {
     const newMessageEl = document.createElement('p');
     if(msgObj.id === socket.id){
         newMessageEl.classList.add('my_message')
+    }else{
+        audio.play();
     }
 
     newMessageEl.textContent = msgObj.msg
