@@ -4,7 +4,7 @@
 /*********************************/
 /*********************************/
 const localHost = "ws://134.0.117.85:5555";
-// const localHost = "ws://localhost:5555/";
+//const localHost = "ws://localhost:5555/";
 
 const express = require('express');
 const app = express();
@@ -47,11 +47,21 @@ setInterval(() => {
 //Соединение пользователей онлайн и обработчики событий
 io.on('connection', (socket) => {
 
+    /** Snake section
+     ****************************/
     // Шина snake
     socket.on('snake', (snakeObject) => {
         snakes[snakeObject.id] = snakeObject.snake;
     })
 
+    /** Chat section
+     ****************************/
+    socket.on('chat_message', (msg) => {
+        io.emit('new_message', msg)
+    })
+
+    /** Disconnect section
+     ****************************/
     //Разрыв соединения сокета и удаления пользователя из списка онлайн
     socket.on('disconnect', () => {
         delete snakes[socket.id]

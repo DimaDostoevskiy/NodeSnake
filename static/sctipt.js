@@ -1,5 +1,5 @@
 const localHost = "ws://134.0.117.85:5555";
-// const localHost = "ws://localhost:5555/";
+//const localHost = "ws://localhost:5555/";
 const socket = io(localHost);
 let guestSnakes = null
 
@@ -18,8 +18,8 @@ socket.on('allSnakes', (snakes) => {
 })
 
 const canvas = document.getElementById('canvas');
-canvas.width = window.screen.availWidth * 1.25;
-canvas.height = window.screen.availHeight * 1.127;
+canvas.width = document.body.clientWidth;
+canvas.height = document.body.clientHeight;
 const ctx = canvas.getContext('2d');
 
 const SNAKE = [];
