@@ -39,7 +39,7 @@ const getDistanse = (obj1, obj2) => {
 }
 
 const drawSnake = (snake) => {
-  
+
   snake.forEach((item, index) => {
     // draw this
     ctx.beginPath();
@@ -174,17 +174,30 @@ const initGame = () => {
 }
 initGame();
 
+// update snakes targets and col
 setInterval(() => {
+
   for (const key of questsSnakes.keys()) {
-    if(snakes.has(key)){
+    if (snakes.has(key)) {
       let questSnake = snakes.get(key);
       questSnake[0].target = questsSnakes.get(key).target;
-      // TODO: count
     } else {
       createSnake(key, questsSnakes.get(key).count)
     }
   }
+
+  for (const key of snakes.keys()) {
+    if (!questsSnakes.has(key)) {
+      snakes.delete(key)
+    }
+  }
 }, 60)
+
+// update mySnake target
+canvas.addEventListener('mousemove', (event) => {
+  cursor.X = event.clientX;
+  cursor.Y = event.clientY;
+})
 
 // animate
 requestAnimationFrame(function draw() {
@@ -202,12 +215,6 @@ requestAnimationFrame(function draw() {
     // drawApples(apples)
   }
   requestAnimationFrame(draw);
-})
-
-// update mySnake target
-canvas.addEventListener('mousemove', (event) => {
-  cursor.X = event.clientX;
-  cursor.Y = event.clientY;
 })
 
 // log for dev
