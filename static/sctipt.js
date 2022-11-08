@@ -27,16 +27,19 @@ let isGame = false;
 
 // support
 const getRndInt = (min, max) => {
+
   Math.floor(Math.random() * (max - min) + min);
 }
 
 const getDistanse = (obj1, obj2) => {
+
   const dx = obj1.X - obj2.X;
   const dy = obj1.Y - obj2.Y;
   return Math.sqrt(dx * dx + dy * dy);
 }
 
 const drawSnake = (snake) => {
+  
   snake.forEach((item, index) => {
     // draw this
     ctx.beginPath();
@@ -44,11 +47,11 @@ const drawSnake = (snake) => {
     ctx.strokeStyle = item.color;
     ctx.arc(item.X, item.Y, item.radius, 0, Math.PI * 2, true);
     ctx.stroke();
-    // calculate collision with this target
+    // calculate collision with target
     if (getDistanse(item, item.target) < item.radius * 4) return;
     // calculate speed
     if (index === 0) {
-      item.speed = getDistanse(item, item.target) / 40;
+      item.speed = getDistanse(item, item.target) / 42;
     } else {
       item.speed = item.target.speed * 0.92;
       if (item.speed < minSnakeSpeed) item.speed = minSnakeSpeed;
@@ -66,6 +69,7 @@ const drawSnake = (snake) => {
 }
 
 const drawApples = (apples) => {
+
   apples.forEach(item => {
     ctx.beginPath();
     ctx.lineWidth = item.radius * 2;
@@ -85,8 +89,10 @@ const drawApples = (apples) => {
 }
 
 const cursor = {
+
   X: 0,
   Y: 0,
+
   draw() {
     ctx.beginPath();
     ctx.lineWidth = 2;
@@ -168,11 +174,23 @@ const initGame = () => {
 }
 initGame();
 
+setInterval(() => {
+  for (const key of questsSnakes.keys()) {
+    if(snakes.has(key)){
+      let questSnake = snakes.get(key);
+      questSnake[0].target = questsSnakes.get(key).target;
+      // TODO: count
+    } else {
+      createSnake(key, questsSnakes.get(key).count)
+    }
+  }
+}, 60)
+
 // animate
 requestAnimationFrame(function draw() {
+  // clear canvas
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   if (isGame) {
-    // clear canvas
     // draw cursor
     cursor.draw();
     // draw snakes
@@ -195,7 +213,7 @@ canvas.addEventListener('mousemove', (event) => {
 // log for dev
 setInterval(() => {
   // console.log(`--------------------------------------------`);
-  console.log(snakes.get(myId));
+  // console.log(snakes.get(myId));
 
   // console.log(`--------------------------------------------`);
 }, 2000)
