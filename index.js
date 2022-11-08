@@ -42,7 +42,7 @@ const snakes = {};
 
 //Хранилище данных о состоянии яблок
 const Apple = require('./src/game/apples')
-Apple.generateApples(20);
+Apple.generateApples(100);
 
 setInterval(() => {
     io.emit('allSnakes', snakes);

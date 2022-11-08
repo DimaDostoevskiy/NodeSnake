@@ -51,6 +51,24 @@ class SnakePoint {
   }
 }
 
+const createSnake = (id, count, color) => {
+  let newSnake = [];
+  newSnake.push(new SnakePoint())
+  newSnake[0].target = { X: 0, Y: 0 };
+  newSnake[0].color = color;
+
+  for (let i = 1; i < count; i++) {
+    const newSnakePoint = new SnakePoint();
+    newSnakePoint.radius = newSnake[i - 1].radius * 0.9;
+    newSnakePoint.target = newSnake[i - 1];
+    newSnakePoint.color = color;
+    newSnake.push(newSnakePoint);
+  }
+
+  if (id === myId) newSnake[0].target = cursor;
+  snakes.set(id, newSnake)
+}
+
 const drawSnake = (snake) => {
 
   snake.forEach((item, index) => {
@@ -82,8 +100,8 @@ const drawSnake = (snake) => {
   // calculate collision
   for (const apple of apples) {
     if (getDistanse(snake[0], apple) < (snake[0].radius + apple.radius)) {
-      apples.delete(apple)
-
+      apples.delete(apple);
+      socket.emit('consume_apple', apple.id)
       // info server
       console.log('eaat');
     }
@@ -109,24 +127,6 @@ const drawApple = (apple) => {
   ctx.stroke();
 }
 
-const createSnake = (id, count, color) => {
-  let newSnake = [];
-  newSnake.push(new SnakePoint())
-  newSnake[0].target = { X: 0, Y: 0 };
-  newSnake[0].color = color;
-
-  for (let i = 1; i < count; i++) {
-    const newSnakePoint = new SnakePoint();
-    newSnakePoint.radius = newSnake[i - 1].radius * 0.9;
-    newSnakePoint.target = newSnake[i - 1];
-    newSnakePoint.color = color;
-    newSnake.push(newSnakePoint);
-  }
-
-  if (id === myId) newSnake[0].target = cursor;
-  snakes.set(id, newSnake)
-}
-
 // send snake
 setInterval(() => {
   let mySnake = snakes.get(myId);
@@ -140,6 +140,14 @@ socket.on('allSnakes', (snakes) => {
   questsSnakes.clear();
   Object.entries(snakes)
     .forEach(item => questsSnakes.set(item[0], item[1]))
+})
+
+// receive apples
+socket.on('apples', (receiveApples) => {
+  apples.clear();
+  receiveApples.forEach(apple => {
+    apples.add(apple)
+  })
 })
 
 const initGame = () => {
@@ -159,11 +167,6 @@ const initGame = () => {
         0.9)`;
       cursor.color = myColor;
       createSnake(myId, startSnakeCount, myColor);
-
-      // give apples
-      for (let i = 0; i < 16; i++) {
-        apples.add(new Apple(i))
-      }
 
       clearTimeout(timerId)
     } else {
@@ -237,6 +240,7 @@ canvas.addEventListener('mousemove', (event) => {
 setInterval(() => {
   console.log(`--------------------------------------------`);
 
+  // console.log(a)
   console.log(`--------------------------------------------`);
 }, 3000)
 
