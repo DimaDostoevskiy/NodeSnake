@@ -1,8 +1,8 @@
 // set canvas
 const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
 canvas.width = document.body.clientWidth;
 canvas.height = document.body.clientHeight;
-const ctx = canvas.getContext('2d');
 
 // set socet
 // const localHost = "ws://134.0.117.85:5555";     //for prod
@@ -26,11 +26,8 @@ const questsSnakes = new Map();
 let myId = '';
 let isGame = false;
 
-// support
-const getRndInt = (min, max) => {
+const getRndInt = (min, max) => Math.floor(Math.random() * (max - min) + min);
 
-  Math.floor(Math.random() * (max - min) + min);
-}
 
 const getDistanse = (obj1, obj2) => {
 
@@ -93,11 +90,12 @@ const cursor = {
 
   X: 0,
   Y: 0,
+  color: 'white',
 
   draw() {
     ctx.beginPath();
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = 'SlateBlue';
+    ctx.lineWidth = 0;
+    ctx.strokeStyle = this.color;
     ctx.arc(this.X, this.Y, 2, 0, Math.PI * 2, true);
     ctx.stroke();
   }
@@ -110,7 +108,7 @@ class SnakePoint {
     this.Y = 0;
     this.radius = 6;
     this.speed = 8;
-    this.color = `rgba(255, 89, 161, 0.9)`;
+    this.color = 'red';
     this.target = {};
   }
 }
@@ -127,26 +125,29 @@ class Apple {
   }
 }
 
-const createSnake = (id, count) => {
+const createSnake = (id, count, color) => {
   let newSnake = [];
   newSnake.push(new SnakePoint())
   newSnake[0].target = { X: 0, Y: 0 };
-
-  if (id === myId) newSnake[0].target = cursor;
+  newSnake[0].color = color;
 
   for (let i = 1; i < count; i++) {
     const newSnakePoint = new SnakePoint();
     newSnakePoint.radius = newSnake[i - 1].radius * 0.9;
     newSnakePoint.target = newSnake[i - 1];
+    newSnakePoint.color = color;
     newSnake.push(newSnakePoint);
   }
+
+  if (id === myId) newSnake[0].target = cursor;
   snakes.set(id, newSnake)
 }
 
 // give my snake
 setInterval(() => {
   if (socket.connected && snakes.get(myId)) {
-    socket.emit('snake', { target: { X: cursor.X, Y: cursor.Y }, count: snakes.get(myId).length })
+    let mySnake = snakes.get(myId);
+    socket.emit('snake', { target: { X: cursor.X, Y: cursor.Y }, count: mySnake.length, color: mySnake[0].color })
   }
 }, giveMySnakeInterval)
 
@@ -164,8 +165,9 @@ setInterval(() => {
     if (snakes.has(key)) {
       let questSnake = snakes.get(key);
       questSnake[0].target = questsSnakes.get(key).target;
+      // TODO: snake lenght
     } else {
-      createSnake(key, questsSnakes.get(key).count)
+      createSnake(key, questsSnakes.get(key).count, questsSnakes.get(key).color)
     }
   }
 
@@ -189,7 +191,12 @@ const initGame = () => {
 
       console.log(`user ${myId} connected!`);
       isGame = true;
-      createSnake(myId, startSnakeCount);
+      let cR = getRndInt(1, 256);
+      let cG = getRndInt(1, 256);
+      let cB = getRndInt(1, 256);
+      let myColor = `rgba(${cR}, ${cG}, ${cB}, 0.9)`;
+      cursor.color = myColor;
+      createSnake(myId, startSnakeCount, myColor);
       clearTimeout(timerId)
     } else {
       timerId = setTimeout(tick, 500);
@@ -221,7 +228,7 @@ requestAnimationFrame(function draw() {
 // log for dev
 setInterval(() => {
   // console.log(`--------------------------------------------`);
-  // console.log(snakes.get(myId));
+  // console.log(getRndInt(1, 256));
 
   // console.log(`--------------------------------------------`);
 }, 2000)
