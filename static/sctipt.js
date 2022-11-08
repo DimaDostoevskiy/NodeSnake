@@ -1,42 +1,121 @@
-const localHost = "ws://134.0.117.85:5555";
-//const localHost = "ws://localhost:5555/";
-const socket = io(localHost);
-let guestSnakes = null
-
-/**
- * socket listeners
- */
-
-socket.on('allSnakes', (snakes) => {
-  let resultSnakes = [];
-  Object.entries(snakes).forEach(item => {
-    if (item[0] !== socket.id) {
-      resultSnakes.push(item[1])
-    }
-  })
-  guestSnakes = resultSnakes
-})
-
+// set canvas
 const canvas = document.getElementById('canvas');
-canvas.width = document.body.clientWidth;
-canvas.height = document.body.clientHeight;
+canvas.width = window.screen.availWidth * 1.25;
+canvas.height = window.screen.availHeight * 1.127;
 const ctx = canvas.getContext('2d');
 
-const SNAKE = [];
-const APPLES = [];
+// set socet
+// const localHost = "ws://134.0.117.85:5555";     //for prod
+const localHost = "ws://localhost:5555/";
+const socket = io(localHost);
 
-const getRndInt = (min, max) =>
+// snake constants
+const minSnakeSpeed = 4;
+const maxSnakeSpeed = 42;
+const maxSnakeRadius = 8;
+const minSnakeRadius = 1;
+const startSnakeCount = 8;
+const giveMySnakeInterval = 60;
+
+// all snakes collection key: id value: snake array
+const snakes = new Map();
+// data from server collection key: id value: {target, count}
+const questsSnakes = new Map();
+
+let myId = '';
+let isGame = false;
+
+// support
+const getRndInt = (min, max) => {
+
   Math.floor(Math.random() * (max - min) + min);
+}
 
 const getDistanse = (obj1, obj2) => {
+
   const dx = obj1.X - obj2.X;
   const dy = obj1.Y - obj2.Y;
   return Math.sqrt(dx * dx + dy * dy);
 }
 
-//#region Classes
+const drawSnake = (snake) => {
+
+  snake.forEach((item, index) => {
+    // draw this
+    ctx.beginPath();
+    ctx.lineWidth = item.radius * 2;
+    ctx.strokeStyle = item.color;
+    ctx.arc(item.X, item.Y, item.radius, 0, Math.PI * 2, true);
+    ctx.stroke();
+    // calculate collision with target
+    if (getDistanse(item, item.target) < item.radius * 4) return;
+    // calculate speed
+    if (index === 0) {
+      item.speed = getDistanse(item, item.target) / 42;
+    } else {
+      item.speed = item.target.speed * 0.92;
+      if (item.speed < minSnakeSpeed) item.speed = minSnakeSpeed;
+      if (item.speed > maxSnakeSpeed) item.speed = maxSnakeSpeed;
+    }
+    // calculate velocity
+    const dx = item.X - item.target.X;
+    const dy = item.Y - item.target.Y;
+    let theta = Math.atan2(dy, dx);
+    let vX = Math.cos(theta) * item.speed;
+    let vY = Math.sin(theta) * item.speed;
+    item.X -= vX;
+    item.Y -= vY;
+  })
+}
+
+const drawApples = (apples) => {
+
+  apples.forEach(item => {
+    ctx.beginPath();
+    ctx.lineWidth = item.radius * 2;
+    ctx.strokeStyle = item.color;
+    ctx.arc(item.X, item.Y, item.radius, 0, Math.PI * 2, true);
+    ctx.stroke();
+
+    // if (this.X < 0) this.X = canvas.width;
+    // if (this.Y < 0) this.Y = canvas.height;
+
+    // if (this.X > canvas.width) this.X = 0;
+    // if (this.Y > canvas.height) this.Y = 0;
+
+    // this.X += this.dx;
+    // this.Y += this.dy;
+  })
+}
+
+const cursor = {
+
+  X: 0,
+  Y: 0,
+
+  draw() {
+    ctx.beginPath();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = 'SlateBlue';
+    ctx.arc(this.X, this.Y, 2, 0, Math.PI * 2, true);
+    ctx.stroke();
+  }
+}
+
+class SnakePoint {
+
+  constructor() {
+    this.X = 0;
+    this.Y = 0;
+    this.radius = 6;
+    this.speed = 8;
+    this.color = `rgba(255, 89, 161, 0.9)`;
+    this.target = {};
+  }
+}
 
 class Apple {
+
   constructor() {
     this.radius = getRndInt(2, 6);
     this.X = getRndInt(10, canvas.width);
@@ -45,143 +124,140 @@ class Apple {
     this.dx = getRndInt(-2, 2);
     this.dy = getRndInt(-2, 2);
   }
-
-  draw() {
-    if (getDistanse(this, SNAKE[0]) < SNAKE[0].radius + this.radius) {
-      APPLES.splice(APPLES.indexOf(this), 1);
-
-      const newSnake = new Snake();
-      newSnake.X = SNAKE[SNAKE.length - 1].X;
-      newSnake.Y = SNAKE[SNAKE.length - 1].Y;
-      newSnake.radius = this.radius;
-      newSnake.target = SNAKE[SNAKE.length - 1];
-      SNAKE.push(newSnake);
-    }
-
-    if (this.X - this.radius <= 0) this.dx = -this.dx;
-    if (this.Y - this.radius <= 0) this.dy = -this.dy;
-    if (this.X + this.radius > canvas.width) this.dx = -this.dx;
-    if (this.Y + this.radius > canvas.height) this.dy = -this.dy;
-
-    this.X += this.dx;
-    this.Y += this.dy;
-
-    ctx.beginPath();
-    ctx.lineWidth = this.radius * 2;
-    ctx.strokeStyle = this.color;
-    ctx.arc(this.X, this.Y, this.radius, 0, Math.PI * 2, true);
-    ctx.stroke();
-  }
 }
 
-class Snake {
-  constructor() {
-    this.radius = 7;
-    this.X = getRndInt(10, 100);
-    this.Y = getRndInt(10, 100);
-    this.speed = 1;
-    this.color = `rgb(256, 28, 28`;
-    this.target = {
-      X: 0,
-      Y: 0,
-    };
-  }
+const createSnake = (id, count) => {
+  let newSnake = [];
+  newSnake.push(new SnakePoint())
+  newSnake[0].target = { X: 0, Y: 0 };
 
-  draw() {
-    ctx.beginPath();
-    ctx.lineWidth = this.radius * 2;
-    ctx.strokeStyle = this.color;
-    ctx.arc(this.X, this.Y, this.radius, 0, Math.PI * 2, true);
-    ctx.stroke();
+  if (id === myId) newSnake[0].target = cursor;
 
-    if (getDistanse(this, this.target) > this.radius) {
-      this.speed = (this.speed < 5) ? getDistanse(this, this.target) / 10 : 2;
-      const dx = this.X - this.target.X;
-      const dy = this.Y - this.target.Y;
-      let theta = Math.atan2(dy, dx);
-      let vX = Math.cos(theta) * this.speed;
-      let vY = Math.sin(theta) * this.speed;
-      this.X -= vX;
-      this.Y -= vY;
-    }
+  for (let i = 1; i < count; i++) {
+    const newSnakePoint = new SnakePoint();
+    newSnakePoint.radius = newSnake[i - 1].radius * 0.9;
+    newSnakePoint.target = newSnake[i - 1];
+    newSnake.push(newSnakePoint);
   }
+  snakes.set(id, newSnake)
 }
 
-const cursor = {
-  x: 0, y: 0, draw() {
-    ctx.beginPath();
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = 'white';
-    ctx.arc(this.x, this.y, 2, 0, Math.PI * 2, true);
-    ctx.stroke();
+// give my snake
+setInterval(() => {
+  if (socket.connected && snakes.get(myId)) {
+    socket.emit('snake', { target: { X: cursor.X, Y: cursor.Y }, count: snakes.get(myId).length })
   }
-}
+}, giveMySnakeInterval)
 
-//#endregion
-
-function init() {
-  SNAKE.push(new Snake());
-
-  for (let i = 1; i < 8; i++) {
-    const tailItem = new Snake();
-    tailItem.speed -= 0.1 * i;
-    tailItem.radius -= 0.7 * i;
-    SNAKE.push(tailItem);
-    SNAKE[i].target = SNAKE[i - 1];
-  }
-  for (let i = 0; i < 20; i++) {
-    APPLES.push(new Apple())
-  }
-}
-
-canvas.addEventListener('mousemove', (event) => {
-  cursor.x = event.clientX;
-  cursor.y = event.clientY;
+// receive quests snakes
+socket.on('allSnakes', (snakes) => {
+  questsSnakes.clear();
+  Object.entries(snakes)
+    .forEach(item => questsSnakes.set(item[0], item[1]))
 })
 
+const initGame = () => {
+  let timerId = setTimeout(function tick() {
+    if (socket.connected) {
+      myId = (socket.id).toString();
+
+      console.log(`user ${myId} connected!`);
+      isGame = true;
+      createSnake(myId, startSnakeCount);
+      clearTimeout(timerId)
+    } else {
+      timerId = setTimeout(tick, 500);
+      console.log(`no connected...`);
+    }
+  }, 500);
+
+}
+initGame();
+
+// update snakes targets and col
 setInterval(() => {
-  ctx.clearRect(0, 0, 10000, 10000);
-  cursor.draw();
-  SNAKE.forEach(item => item.draw());
-  APPLES.forEach(item => item.draw());
 
-  let snakes = []
-
-  SNAKE[0].target.X = cursor.x;
-  SNAKE[0].target.Y = cursor.y;
-
-  if (socket.connected) {
-    const snake = SNAKE.map(snakePoint => {
-      return {x: snakePoint.X, y: snakePoint.Y}
-    })
-
-    socket.emit('snake', {snake, id: socket.id})
-  }
-
-  if (guestSnakes && guestSnakes.length) {
-    guestSnakes.forEach((guestSnake) => {
-      let tmpSnakes = []
-      guestSnake.forEach((item) => {
-        let gSnake = new Snake()
-        gSnake.X = item.x;
-        gSnake.Y = item.y;
-        tmpSnakes.push(gSnake)
-      })
-      snakes.push(tmpSnakes);
-    })
-
-    if (snakes && snakes.length) {
-      snakes.forEach((guestSnake) => {
-        guestSnake.forEach(item => {
-          item.draw()
-        });
-      })
+  for (const key of questsSnakes.keys()) {
+    if (snakes.has(key)) {
+      let questSnake = snakes.get(key);
+      questSnake[0].target = questsSnakes.get(key).target;
+    } else {
+      createSnake(key, questsSnakes.get(key).count)
     }
   }
-}, 10)
 
-init();
+  for (const key of snakes.keys()) {
+    if (!questsSnakes.has(key)) {
+      snakes.delete(key)
+    }
+  }
+}, 60)
+
+// update mySnake target
+canvas.addEventListener('mousemove', (event) => {
+  cursor.X = event.clientX;
+  cursor.Y = event.clientY;
+})
+
+// animate
 requestAnimationFrame(function draw() {
+  // clear canvas
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  if (isGame) {
+    // draw cursor
+    cursor.draw();
+    // draw snakes
 
+    for (const snake of snakes.values()) {
+      drawSnake(snake);
+    }
+    // draw apples
+    // drawApples(apples)
+  }
   requestAnimationFrame(draw);
 })
+
+// log for dev
+setInterval(() => {
+  // console.log(`--------------------------------------------`);
+  // console.log(snakes.get(myId));
+
+  // console.log(`--------------------------------------------`);
+}, 2000)
+
+
+// // calculate collision
+// apples.forEach(item => {
+//   if (getDistanse(this, item) < (this.radius + item.radius)) {
+//     // if collision with snake body create 4 apple
+//     if (indexFromArray) {
+//       for (let i = 0; i < 4; i++) {
+//         const newApple = new Apple();
+//         newApple.X = this.X;
+//         newApple.Y = this.Y;
+//         apples.push(newApple)
+//       }
+//       mySnake.splice(indexFromArray, mySnake.length - indexFromArray)
+//       // if collision with head add new snakePoint to tail
+//     } else {
+//       const newSnakePoint = new SnakePoint();
+
+//       newSnakePoint.X = mySnake[mySnake.length - 1].X;
+//       newSnakePoint.Y = mySnake[mySnake.length - 1].Y;
+//       newSnakePoint.target = mySnake[mySnake.length - 1];
+
+//       mySnake.push(newSnakePoint)
+//       apples.splice(apples.indexOf(item), 1)
+
+//       // calculate snake's radius
+//       mySnake.reverse();
+//       mySnake.forEach((item, index) => {
+//         item.radius = ((maxSnakeRadius - minSnakeRadius) / mySnake.length) * (index + 1)
+//       })
+//       mySnake.reverse();
+//     }
+//   }
+// })
+
+//   }
+// }

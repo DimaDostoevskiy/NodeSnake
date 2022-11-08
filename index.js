@@ -4,7 +4,7 @@
 /*********************************/
 /*********************************/
 const localHost = "ws://134.0.117.85:5555";
-//const localHost = "ws://localhost:5555/";
+// const localHost = "ws://localhost:5555/";
 
 const express = require('express');
 const app = express();
@@ -12,15 +12,15 @@ const PORT = process.env.PORT || 5555;
 const cors = require('cors');
 const path = require('path')
 
-// Staic files from "./static" page
+// use static files from "./static"
 app.use(express.static(path.join(__dirname, 'static')))
 
-// Home page
+// routing
 app.get('/', () => {
     res.sendfile("/index.html");
 })
 
-//socket.io init
+// socket.io init
 const { createServer } = require("http");
 const { Server } = require('socket.io');
 
@@ -32,26 +32,25 @@ const io = new Server(httpServer, {
     }
 });
 
-
-
 /** Клиентский код
  *******************/
+
+const emitSnakesInterval = 60;
 
 //Хранилище данных о состоянии змей
 const snakes = {};
 
 setInterval(() => {
     io.emit('allSnakes', snakes);
-}, 10);
+}, emitSnakesInterval);
 
 //Соединение пользователей онлайн и обработчики событий
 io.on('connection', (socket) => {
 
     /** Snake section
      ****************************/
-    // Шина snake
-    socket.on('snake', (snakeObject) => {
-        snakes[snakeObject.id] = snakeObject.snake;
+    socket.on('snake', (snake) => {
+        snakes[socket.id] = snake;
     })
 
     /** Chat section
@@ -72,5 +71,5 @@ io.on('connection', (socket) => {
  ************************/
 app.use(cors());
 httpServer.listen(PORT, () => {
-    console.log(`Blast-off on ${localHost}:${PORT} pid:${process.pid}`);
+    console.log(`Blast-off on ${localHost} pid:${process.pid}`);
 });
