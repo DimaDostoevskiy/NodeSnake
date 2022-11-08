@@ -16,6 +16,7 @@ const maxSnakeRadius = 8;
 const minSnakeRadius = 1;
 const startSnakeCount = 8;
 const giveMySnakeInterval = 60;
+const updateSnakesInterval = 60;
 
 // all snakes collection key: id value: snake array
 const snakes = new Map();
@@ -156,6 +157,31 @@ socket.on('allSnakes', (snakes) => {
     .forEach(item => questsSnakes.set(item[0], item[1]))
 })
 
+// update snakes targets and snakes count
+setInterval(() => {
+
+  for (const key of questsSnakes.keys()) {
+    if (snakes.has(key)) {
+      let questSnake = snakes.get(key);
+      questSnake[0].target = questsSnakes.get(key).target;
+    } else {
+      createSnake(key, questsSnakes.get(key).count)
+    }
+  }
+
+  for (const key of snakes.keys()) {
+    if (!questsSnakes.has(key)) {
+      snakes.delete(key)
+    }
+  }
+}, updateSnakesInterval)
+
+// update mySnake target
+canvas.addEventListener('mousemove', (event) => {
+  cursor.X = event.clientX;
+  cursor.Y = event.clientY;
+})
+
 const initGame = () => {
   let timerId = setTimeout(function tick() {
     if (socket.connected) {
@@ -173,31 +199,6 @@ const initGame = () => {
 
 }
 initGame();
-
-// update snakes targets and col
-setInterval(() => {
-
-  for (const key of questsSnakes.keys()) {
-    if (snakes.has(key)) {
-      let questSnake = snakes.get(key);
-      questSnake[0].target = questsSnakes.get(key).target;
-    } else {
-      createSnake(key, questsSnakes.get(key).count)
-    }
-  }
-
-  for (const key of snakes.keys()) {
-    if (!questsSnakes.has(key)) {
-      snakes.delete(key)
-    }
-  }
-}, 60)
-
-// update mySnake target
-canvas.addEventListener('mousemove', (event) => {
-  cursor.X = event.clientX;
-  cursor.Y = event.clientY;
-})
 
 // animate
 requestAnimationFrame(function draw() {

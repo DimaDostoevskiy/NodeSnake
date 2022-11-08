@@ -40,7 +40,6 @@ const emitSnakesInterval = 60;
 
 //Хранилище данных о состоянии змей
 const snakes = {};
-let socketIO = null;
 
 setInterval(() => {
     io.emit('allSnakes', snakes);
@@ -48,14 +47,10 @@ setInterval(() => {
 
 //Соединение пользователей онлайн и обработчики событий
 io.on('connection', (socket) => {
-
     console.log(`user ${socket.id} connection`);
 
     socket.on('snake', (snake) => {
-        // console.log(id);
-        // console.log(snake);
         snakes[socket.id] = snake;
-        socketIO = socket;
     })
 
     //Разрыв соединения сокета и удаления пользователя из списка онлайн
@@ -71,12 +66,11 @@ httpServer.listen(PORT, () => {
     console.log(`Blast-off on ${localHost} pid:${process.pid}`);
 });
 
-
-// for dev
-setInterval(() => {
-    console.log(`--------------------------------------------`);
-    console.log(snakes);
-}, 5000)
+// log for dev
+// setInterval(() => {
+//     console.log(`--------------------------------------------`);
+//     console.log(snakes);
+// }, 5000)
 
 
 
