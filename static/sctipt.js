@@ -7,8 +7,8 @@ canvas.height = document.body.clientHeight;
 // canvas.height = 3000;
 
 // set socet
-// const localHost = "ws://134.0.117.85:5555";     //for prod
-const localHost = "ws://localhost:5555/";
+const localHost = "ws://134.0.117.85:5555";     //for prod
+//const localHost = "ws://localhost:5555/";
 const socket = io(localHost);
 
 // snake constants
