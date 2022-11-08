@@ -1,11 +1,10 @@
-/*******************************************/
-/*******************************************/
-/*************** SERVER NODEJS *************/
-/*******************************************/
-/*******************************************/
-
-// const localHost = "ws://134.0.117.85:5555";     //for prod
-const localHost = "ws://localhost:5555/";
+/*********************************/
+/*********************************/
+/********* SERVER NODEJS *********/
+/*********************************/
+/*********************************/
+const localHost = "ws://134.0.117.85:5555";
+// const localHost = "ws://localhost:5555/";
 
 const express = require('express');
 const app = express();
@@ -47,12 +46,20 @@ setInterval(() => {
 
 //Соединение пользователей онлайн и обработчики событий
 io.on('connection', (socket) => {
-    console.log(`user ${socket.id} connection`);
-
+    /** Snake section
+     ****************************/
     socket.on('snake', (snake) => {
         snakes[socket.id] = snake;
     })
 
+    /** Chat section
+     ****************************/
+    socket.on('chat_message', (msg) => {
+        io.emit('new_message', msg)
+    })
+
+    /** Disconnect section
+     ****************************/
     //Разрыв соединения сокета и удаления пользователя из списка онлайн
     socket.on('disconnect', () => {
         delete snakes[socket.id]
@@ -63,15 +70,5 @@ io.on('connection', (socket) => {
  ************************/
 app.use(cors());
 httpServer.listen(PORT, () => {
-    console.log(`Blast-off on ${localHost} pid:${process.pid}`);
+    console.log(`Blast-off on ${PORT} pid:${process.pid}`);
 });
-
-// log for dev
-// setInterval(() => {
-//     console.log(`--------------------------------------------`);
-//     console.log(snakes);
-// }, 5000)
-
-
-
-

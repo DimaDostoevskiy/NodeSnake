@@ -4,7 +4,66 @@ html, body {
     height: 100%;
     overflow: hidden;
 }
+.hidden{
+    display: none !important;
+}
 #canvas{
     background-color: rgb(42, 42, 42);
     cursor: none;
+}
+
+
+/* Chat
+ *******/
+
+#chat_app{
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 300px;
+    height: 200px;
+    display: flex;
+    flex-direction: column-reverse;
+}
+
+#chat_messages{
+    color: #4AF626;
+    font-size: 14px;
+    font-family: Courier;
+    overflow: hidden;
+    display: flex;
+    height: 100%;
+    flex-direction: column-reverse;
+    -webkit-mask-image: -webkit-gradient(linear, left bottom, left top,
+    from(rgba(0,0,0,1)), to(rgba(0,0,0,0)));
+}
+
+#chat_messages p{
+    margin: 0;
+    padding: 5px;
+    text-align: left;
+}
+
+#chat_messages p.my_message{
+    text-align: right;
+}
+
+#chat_form{
+    display: flex;
+}
+
+#chat_input{
+    width: 100%;
+    opacity: .4;
+}
+
+#chat_input:focus{
+    outline: none;
+}
+
+#chat_send{
+    width: 30%;
+    background-color: black;
+    color: #4AF626;
+    border: 1px solid #4AF626;
 }

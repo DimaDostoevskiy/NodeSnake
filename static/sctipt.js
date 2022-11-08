@@ -165,7 +165,6 @@ setInterval(() => {
     if (snakes.has(key)) {
       let questSnake = snakes.get(key);
       questSnake[0].target = questsSnakes.get(key).target;
-      // TODO: snake lenght
     } else {
       createSnake(key, questsSnakes.get(key).count, questsSnakes.get(key).color)
     }
