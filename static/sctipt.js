@@ -233,39 +233,3 @@ setInterval(() => {
   // console.log(`--------------------------------------------`);
 }, 2000)
 
-
-// // calculate collision
-// apples.forEach(item => {
-//   if (getDistanse(this, item) < (this.radius + item.radius)) {
-//     // if collision with snake body create 4 apple
-//     if (indexFromArray) {
-//       for (let i = 0; i < 4; i++) {
-//         const newApple = new Apple();
-//         newApple.X = this.X;
-//         newApple.Y = this.Y;
-//         apples.push(newApple)
-//       }
-//       mySnake.splice(indexFromArray, mySnake.length - indexFromArray)
-//       // if collision with head add new snakePoint to tail
-//     } else {
-//       const newSnakePoint = new SnakePoint();
-
-//       newSnakePoint.X = mySnake[mySnake.length - 1].X;
-//       newSnakePoint.Y = mySnake[mySnake.length - 1].Y;
-//       newSnakePoint.target = mySnake[mySnake.length - 1];
-
-//       mySnake.push(newSnakePoint)
-//       apples.splice(apples.indexOf(item), 1)
-
-//       // calculate snake's radius
-//       mySnake.reverse();
-//       mySnake.forEach((item, index) => {
-//         item.radius = ((maxSnakeRadius - minSnakeRadius) / mySnake.length) * (index + 1)
-//       })
-//       mySnake.reverse();
-//     }
-//   }
-// })
-
-//   }
-// }
