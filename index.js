@@ -40,12 +40,26 @@ const emitSnakesInterval = 60;
 //Хранилище данных о состоянии змей
 const snakes = {};
 
+//Хранилище данных о состоянии яблок
+const Apple = require('./src/game/apples')
+Apple.generateApples(20);
+
 setInterval(() => {
     io.emit('allSnakes', snakes);
 }, emitSnakesInterval);
 
 //Соединение пользователей онлайн и обработчики событий
 io.on('connection', (socket) => {
+
+
+    /** Apple section
+     ****************************/
+    io.to(socket.id).emit('apples', Apple.apples)
+    socket.on('consume_apple', (id) => {
+        Apple.removeApple(id);
+        socket.broadcast.emit('apple_consumed', id);
+    })
+
     /** Snake section
      ****************************/
     socket.on('snake', (snake) => {
