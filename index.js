@@ -4,8 +4,8 @@
 /*********************************/
 /*********************************/
 
-const localHost = "ws://134.0.117.85:5555"; // for prod
-// const localHost = "ws://localhost:5555/";
+// const localHost = "ws://134.0.117.85:5555"; // for dev
+const localHost = "ws://localhost:5555/";
 
 const express = require('express');
 const app = express();
