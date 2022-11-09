@@ -32,16 +32,16 @@ const getRndInt = (min, max) => Math.floor(Math.random() * (max - min) + min);
 
 const getDistanse = (obj1, obj2) => {
 
-  const dx = obj1.X - obj2.X;
-  const dy = obj1.Y - obj2.Y;
+  const dx = Math.abs(obj1.X - obj2.X);
+  const dy = Math.abs(obj1.Y - obj2.Y);
   return Math.sqrt(dx * dx + dy * dy);
 }
 
 class SnakePoint {
 
   constructor() {
-    this.X = 0;
-    this.Y = 0;
+    this.X = 1;
+    this.Y = 1;
     this.radius = 6;
     this.speed = 8;
     this.color = 'red';
@@ -77,7 +77,8 @@ const drawSnake = (snake) => {
     ctx.arc(item.X, item.Y, item.radius, 0, Math.PI * 2, true);
     ctx.stroke();
     // calculate collision with target
-    if (getDistanse(item, item.target) < item.radius * 4) return;
+    if (getDistanse(item, item.target) < item.radius * 4) 
+      return;
     // calculate speed
     if (index === 0) {
       item.speed = getDistanse(item, item.target) / 42;
@@ -96,6 +97,14 @@ const drawSnake = (snake) => {
     item.Y -= vY;
   })
 
+  if (!apples.size) return;
+
+  for (const apple of apples) {
+    if (getDistanse(snake[0], apple) < (snake[0].radius + apple.radius)*2) {
+      apples.delete(apple);
+      socket.emit('consume_apple', apple.id)
+    }
+  }
 }
 
 class Apple {
@@ -134,6 +143,7 @@ socket.on('allSnakes', (snakes) => {
 
 // receive apples
 socket.on('apples', (receiveApples) => {
+  console.log(receiveApples);
   apples.clear();
   receiveApples.forEach(apple => {
     apples.add(apple)
@@ -147,13 +157,10 @@ const initGame = () => {
     if (socket.connected) {
       isGame = true;
       myId = (socket.id).toString();
-
-      console.log(`user ${myId} connected!`);
-
       let myColor = `rgba(125,135,145,0.9)`;
-      cursor.color = myColor;
       createSnake(myId, startSnakeCount, myColor);
-
+      console.log(`user ${myId} connected!`);
+      cursor.color = myColor;
       clearTimeout(timerId)
     } else {
       timerId = setTimeout(tick, 500);
@@ -177,25 +184,19 @@ setInterval(() => {
       createSnake(key, questsSnakes.get(key).count, questsSnakes.get(key).color)
     }
   }
-  // delete qSnake
+  // delete death qSnake
   for (const key of snakes.keys()) {
     if (!questsSnakes.has(key)) {
       snakes.delete(key);
     }
   }
-
-  // collision calculate
-  if (apples.size < 1) return;
-  // debugger
-  let mySnake = snakes.get(myId);
-  for (const apple of apples) {
-    if (getDistanse(mySnake[0], apple) < (mySnake[0].radius + apple.radius)) {
-      apples.delete(apple);
-      socket.emit('consume_apple', apple.id)
-    }
-  }
-  
 }, updateInterval)
+
+
+setInterval(() => {
+  // collision calculate
+
+}, 60)
 
 // animate
 requestAnimationFrame(function draw() {
@@ -240,10 +241,8 @@ canvas.addEventListener('mousemove', (event) => {
 // log for dev
 setInterval(() => {
   console.log(`--------------------------------------------`);
-  let mySnake = snakes.get(myId);
+  console.log(apples);
 
-  console.log(mySnake[0])
-  console.log(apples)
   console.log(`--------------------------------------------`);
 }, 3000)
 
