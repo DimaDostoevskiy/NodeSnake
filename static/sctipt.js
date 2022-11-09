@@ -3,8 +3,6 @@ const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 canvas.width = document.body.clientWidth;
 canvas.height = document.body.clientHeight;
-// canvas.width = 3000;
-// canvas.height = 3000;
 
 // set socet
 // const localHost = "ws://134.0.117.85:5555";     //for prod
@@ -97,15 +95,7 @@ const drawSnake = (snake) => {
     item.X -= vX;
     item.Y -= vY;
   })
-  // calculate collision
-  for (const apple of apples) {
-    if (getDistanse(snake[0], apple) < (snake[0].radius + apple.radius)) {
-      apples.delete(apple);
-      socket.emit('consume_apple', apple.id)
-      // info server
-      console.log('eaat');
-    }
-  }
+
 }
 
 class Apple {
@@ -160,11 +150,7 @@ const initGame = () => {
 
       console.log(`user ${myId} connected!`);
 
-      let myColor = `rgba(
-        ${getRndInt(1, 256)},
-        ${getRndInt(1, 256)},
-        ${getRndInt(1, 256)},
-        0.9)`;
+      let myColor = `rgba(125,135,145,0.9)`;
       cursor.color = myColor;
       createSnake(myId, startSnakeCount, myColor);
 
@@ -180,7 +166,9 @@ initGame();
 
 // update snakes targets and snakes count
 setInterval(() => {
+  if (!isGame) return;
 
+  // update qSnake target or create new snake
   for (const key of questsSnakes.keys()) {
     if (snakes.has(key)) {
       let questSnake = snakes.get(key);
@@ -189,12 +177,24 @@ setInterval(() => {
       createSnake(key, questsSnakes.get(key).count, questsSnakes.get(key).color)
     }
   }
-
+  // delete qSnake
   for (const key of snakes.keys()) {
     if (!questsSnakes.has(key)) {
-      snakes.delete(key)
+      snakes.delete(key);
     }
   }
+
+  // collision calculate
+  if (apples.size < 1) return;
+  // debugger
+  let mySnake = snakes.get(myId);
+  for (const apple of apples) {
+    if (getDistanse(mySnake[0], apple) < (mySnake[0].radius + apple.radius)) {
+      apples.delete(apple);
+      socket.emit('consume_apple', apple.id)
+    }
+  }
+  
 }, updateInterval)
 
 // animate
@@ -204,13 +204,13 @@ requestAnimationFrame(function draw() {
   if (isGame) {
     // draw cursor
     cursor.draw();
-    // draw snakes
-    for (const snake of snakes.values()) {
-      drawSnake(snake);
-    }
     // draw apples
     for (const apple of apples.values()) {
       drawApple(apple)
+    }
+    // draw snakes
+    for (const snake of snakes.values()) {
+      drawSnake(snake);
     }
   }
   requestAnimationFrame(draw);
@@ -224,13 +224,14 @@ const cursor = {
 
   draw() {
     ctx.beginPath();
-    ctx.lineWidth = 0;
+    ctx.lineWidth = 2;
     ctx.strokeStyle = this.color;
-    ctx.arc(this.X, this.Y, 1, 0, Math.PI * 2, true);
+    ctx.arc(this.X, this.Y, 2, 0, Math.PI * 2, true);
     ctx.stroke();
   }
 }
-// update mySnake target
+
+// update cursor position
 canvas.addEventListener('mousemove', (event) => {
   cursor.X = event.clientX;
   cursor.Y = event.clientY;
@@ -239,8 +240,10 @@ canvas.addEventListener('mousemove', (event) => {
 // log for dev
 setInterval(() => {
   console.log(`--------------------------------------------`);
+  let mySnake = snakes.get(myId);
 
-  // console.log(a)
+  console.log(mySnake[0])
+  console.log(apples)
   console.log(`--------------------------------------------`);
 }, 3000)
 
