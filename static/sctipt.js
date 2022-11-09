@@ -40,17 +40,17 @@ const getDistanse = (obj1, obj2) => {
 class SnakePoint {
 
   constructor() {
-    this.X = 1;
-    this.Y = 1;
+    this.X = -100;
+    this.Y = -100;
     this.radius = 6;
     this.speed = 8;
-    this.color = 'red';
+    this.color = null;
     this.target = {};
   }
 }
 
 const createSnake = (id, count, color) => {
-  let newSnake = [];
+  const newSnake = [];
   newSnake.push(new SnakePoint())
   newSnake[0].target = { X: 0, Y: 0 };
   newSnake[0].color = color;
@@ -77,7 +77,7 @@ const drawSnake = (snake) => {
     ctx.arc(item.X, item.Y, item.radius, 0, Math.PI * 2, true);
     ctx.stroke();
     // calculate collision with target
-    if (getDistanse(item, item.target) < item.radius * 4) 
+    if (getDistanse(item, item.target) < item.radius * 4)
       return;
     // calculate speed
     if (index === 0) {
@@ -96,13 +96,15 @@ const drawSnake = (snake) => {
     item.X -= vX;
     item.Y -= vY;
   })
-
+  
+  // calculate collision
   if (!apples.size) return;
 
   for (const apple of apples) {
-    if (getDistanse(snake[0], apple) < (snake[0].radius + apple.radius)*2) {
+    if (getDistanse(snake[0], apple) < (snake[0].radius + apple.radius) * 2) {
       apples.delete(apple);
       socket.emit('consume_apple', apple.id)
+      snake.push(new SnakePoint())
     }
   }
 }
@@ -111,9 +113,9 @@ class Apple {
 
   constructor(id) {
     this.id = id;
-    this.X = getRndInt(10, canvas.width);
-    this.Y = getRndInt(10, canvas.height);
-    this.radius = getRndInt(2, 6);
+    this.X = -100;
+    this.Y = -100;
+    this.radius = 5;
     this.color = `green`;
   }
 }
@@ -150,26 +152,32 @@ socket.on('apples', (receiveApples) => {
   })
 })
 
-const initGame = () => {
+// init game
+const timerId = setTimeout(function tick() {
 
-  let timerId = setTimeout(function tick() {
+  if (socket.connected) {
+    isGame = true;
 
-    if (socket.connected) {
-      isGame = true;
-      myId = (socket.id).toString();
-      let myColor = `rgba(125,135,145,0.9)`;
-      createSnake(myId, startSnakeCount, myColor);
-      console.log(`user ${myId} connected!`);
-      cursor.color = myColor;
-      clearTimeout(timerId)
-    } else {
-      timerId = setTimeout(tick, 500);
-      console.log(`no connected...`);
-    }
-  }, 500);
+    myId = (socket.id).toString();
 
-}
-initGame();
+    colorR = getRndInt(1, 255);
+    colorG = getRndInt(1, 255);
+    colorB = getRndInt(1, 255);
+
+    let myColor = `rgba(${colorR},${colorG},${colorB},1)`;
+
+    createSnake(myId, startSnakeCount, myColor);
+
+    cursor.color = myColor;
+
+    console.log(`user ${myId} connected!`);
+    clearTimeout(timerId)
+  } else {
+    timerId = setTimeout(tick, 500);
+    console.log(`no connected...`);
+  }
+
+}, 500);
 
 // update snakes targets and snakes count
 setInterval(() => {
@@ -192,12 +200,6 @@ setInterval(() => {
   }
 }, updateInterval)
 
-
-setInterval(() => {
-  // collision calculate
-
-}, 60)
-
 // animate
 requestAnimationFrame(function draw() {
   // clear canvas
@@ -217,6 +219,7 @@ requestAnimationFrame(function draw() {
   requestAnimationFrame(draw);
 })
 
+// cursor
 const cursor = {
 
   X: 0,
@@ -241,7 +244,6 @@ canvas.addEventListener('mousemove', (event) => {
 // log for dev
 setInterval(() => {
   console.log(`--------------------------------------------`);
-  console.log(apples);
 
   console.log(`--------------------------------------------`);
 }, 3000)
