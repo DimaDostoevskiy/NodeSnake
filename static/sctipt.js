@@ -3,8 +3,6 @@ const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 canvas.width = document.body.clientWidth;
 canvas.height = document.body.clientHeight;
-// canvas.width = 3000;
-// canvas.height = 3000;
 
 // set socet
 const localHost = "ws://134.0.117.85:5555";     //for prod
