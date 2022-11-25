@@ -1,7 +1,7 @@
 {
-  "name": "dis-server",
+  "name": "nodesnake",
   "version": "1.0.0",
-  "description": "",
+  "description": "multiplayer snake game",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
@@ -9,14 +9,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/dontroll17/dis-server.git"
+    "url": "git+https://github.com/DimaDostoevskiy/NodeSnake"
   },
-  "author": "dontroll17",
-  "license": "ISC",
+  "author": "DimaDostoevskiy",
+  "license": "MIT",
   "bugs": {
-    "url": "https://github.com/dontroll17/dis-server/issues"
+    "url": "https://github.com/DimaDostoevskiy/NodeSnake"
   },
-  "homepage": "https://github.com/dontroll17/dis-server#readme",
+  "homepage": "https://github.com/DimaDostoevskiy/NodeSnake",
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.20.0",
